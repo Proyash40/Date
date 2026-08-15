@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Will you go on a date with me, Aishee?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+  :root{
+    --burgundy:#8B0000;
+    --burgundy-deep:#4a0000;
+    --burgundy-bright:#a30000;
+    --cream:#FDF5E6;
+    --lavender:#E6E6FA;
+    --lavender-deep:#b9a9e0;
+    --rose-white:#FFFFFF;
+    --ink:#3a1414;
+    --shadow: 0 30px 70px -20px rgba(139,0,0,0.55), 0 8px 24px -6px rgba(74,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    font-family:'Jost', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 20% 15%, rgba(230,230,250,0.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #8B0000 0%, #5c0000 45%, #1a0000 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%20viewBox='0%200%20240%20240'%3E%3Cg%20fill='none'%20stroke='%23000000'%20stroke-opacity='0.16'%20stroke-width='1.2'%3E%3Cpath%20d='M20%20220%20C%2042%20180,%2030%20138,%2062%20106%20C%2082%2086,%20112%2078,%20112%2046'/%3E%3Ccircle%20cx='112'%20cy='36'%20r='11'/%3E%3Ccircle%20cx='96'%20cy='44'%20r='7.5'/%3E%3Ccircle%20cx='128'%20cy='44'%20r='7.5'/%3E%3Ccircle%20cx='112'%20cy='54'%20r='7.5'/%3E%3Cpath%20d='M62%20106%20C%2040%2098,%2024%2082,%2028%2062'/%3E%3Cpath%20d='M84%2082%20C%20102%2072,%20106%2056,%2096%2040'/%3E%3Cpath%20d='M220%2018%20C%20198%2058,%20208%20100,%20176%20130%20C%20154%20152,%20122%20160,%20122%20192'/%3E%3Ccircle%20cx='122'%20cy='202'%20r='11'/%3E%3Ccircle%20cx='106'%20cy='210'%20r='7.5'/%3E%3Ccircle%20cx='138'%20cy='210'%20r='7.5'/%3E%3Cpath%20d='M176%20130%20C%20196%20124,%20208%20110,%20206%2092'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat, repeat;
+    background-size: 26px 26px, 240px 240px;
+    background-position: 0 0, 0 0;
+    pointer-events:none;
+  }
+
+  h1,h2,h3{ font-family:'Playfair Display', Georgia, serif; margin:0; }
+
+  .stage{ width:100%; max-width:520px; position:relative; }
+
+  /* progress hearts */
+  .progress{ display:flex; justify-content:center; gap:10px; margin-bottom:22px; }
+  .progress .heart{
+    font-size:15px; color:var(--rose-white);
+    filter: drop-shadow(0 1px 1px rgba(139,0,0,0.4));
+    opacity:0.55; transition: color .4s ease, opacity .4s ease, transform .4s ease;
+    transform:scale(0.9);
+  }
+  .progress .heart.done{ color:var(--lavender); opacity:1; transform:scale(1); }
+  .progress .heart.now{ color:var(--burgundy); opacity:1; transform:scale(1.15); }
+
+  /* viewport that clips the slide transitions */
+  .viewport{
+    position:relative;
+    overflow:hidden;
+    border-radius:22px;
+    transition: height .45s cubic-bezier(.4,0,.2,1);
+  }
+
+  .card{
+    background:var(--cream);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    padding:44px 38px 38px;
+    position:relative;
+    border:1px solid rgba(139,0,0,0.15);
+    width:100%;
+  }
+  .card.hidden-panel{ display:none; }
+  .card.active{ position:relative; }
+
+  .sprig{ position:absolute; width:58px; height:58px; opacity:0.95; pointer-events:none; z-index:2; }
+  .sprig.tl{ top:8px; left:8px; }
+  .sprig.br{ bottom:8px; right:8px; transform:rotate(180deg); }
+
+  .eyebrow{
+    text-align:center; letter-spacing:.14em; text-transform:uppercase;
+    font-size:11.5px; color:var(--burgundy); font-weight:500; margin-bottom:10px; opacity:0.8;
+  }
+  h2.heading{ text-align:center; font-size:29px; line-height:1.32; color:var(--burgundy-deep); margin-bottom:8px; }
+  .subtext{ text-align:center; font-size:15.5px; color:#6b3a3a; line-height:1.55; margin:10px auto 26px; max-width:380px; }
+  .emoji-hero{ text-align:center; font-size:52px; margin-bottom:6px; line-height:1; }
+
+  .btn-row{ display:flex; gap:16px; justify-content:center; margin-top:28px; flex-wrap:wrap; position:relative; min-height:52px; }
+  button{
+    font-family:'Jost', sans-serif; font-size:15.5px; font-weight:500; letter-spacing:.02em;
+    padding:14px 30px; border-radius:100px; border:none; cursor:pointer;
+    transition: transform .18s ease, box-shadow .18s ease, background .2s ease;
+    touch-action: manipulation;
+  }
+  button:active{ transform:scale(0.96); }
+  .btn-primary{ background:var(--burgundy); color:var(--rose-white); box-shadow:0 10px 24px -8px rgba(139,0,0,0.6); }
+  .btn-primary:hover{ background:var(--burgundy-bright); transform:translateY(-2px); }
+  .btn-ghost{ background:#9c9c9c; color:#fff; position:relative; }
+  .btn-next{ display:block; margin:30px auto 0; background:var(--burgundy); color:#fff; padding:13px 34px; }
+  .btn-next:hover{ background:var(--burgundy-bright); }
+
+  /* Step 3 */
+  .field-group{ display:flex; flex-direction:column; gap:16px; margin-top:6px; }
+  label{ font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--burgundy); font-weight:500; margin-bottom:6px; display:block; }
+  input[type="text"].fp-input{
+    width:100%; padding:13px 15px; border-radius:12px; border:1.5px solid #e3cfcf;
+    background:#fffdf9; font-family:'Jost', sans-serif; font-size:15px; color:var(--ink);
+    outline:none; transition: border-color .2s ease, box-shadow .2s ease; cursor:pointer;
+  }
+  input[type="text"].fp-input:focus{ border-color:var(--burgundy); box-shadow:0 0 0 3px rgba(139,0,0,0.12); }
+
+  .oops-card{
+    margin-top:20px; background:var(--lavender); border-radius:14px; padding:18px 20px;
+    text-align:center; border:1px solid #d3d3ee; display:none;
+  }
+  .oops-card.show{ display:block; animation: shake .45s ease; }
+  .oops-card h3{ color:var(--burgundy-deep); font-size:17px; margin-bottom:6px; }
+  .oops-card p{ font-size:14px; line-height:1.5; color:#4a3a5a; margin:0; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-6px); }
+    40%{ transform:translateX(6px); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
+  }
+
+  /* Step 4 */
+  .food-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:8px; }
+  .food-item{
+    background:#fffdf9; border:2px solid #e8dcc8; border-radius:14px; padding:14px 4px;
+    text-align:center; cursor:pointer; transition: all .18s ease; user-select:none; touch-action: manipulation;
+  }
+  .food-item .fe{ font-size:24px; display:block; margin-bottom:5px; }
+  .food-item .fn{ font-size:11px; color:#6b3a3a; font-weight:500; line-height:1.2; }
+  .food-item:hover{ transform:translateY(-2px); border-color:#d8c4a8; }
+  .food-item.selected{ border-color:var(--lavender-deep); background:#f6f3ff; box-shadow:0 0 0 3px rgba(230,230,250,0.7); }
+  .food-item.selected .fn{ color:var(--burgundy); font-weight:600; }
+  .hint{ text-align:center; font-size:12.5px; color:#a88; margin-top:14px; }
+
+  /* Step 5 envelope */
+  .envelope-wrap{ display:flex; flex-direction:column; align-items:center; cursor:pointer; touch-action: manipulation; }
+  .envelope{
+    width:230px; height:150px; position:relative;
+    filter: drop-shadow(0 18px 30px rgba(139,0,0,0.45)); transition: transform .25s ease;
+  }
+  .envelope-wrap:hover .envelope{ transform:translateY(-4px) scale(1.02); }
+  .env-body{ position:absolute; inset:0; background: linear-gradient(160deg, #8B0000, #5c0000); border-radius:10px; }
+  .env-flap{
+    position:absolute; top:0; left:0; right:0; height:0; width:0;
+    border-left:115px solid transparent; border-right:115px solid transparent;
+    border-top:78px solid #a30000; border-radius:10px 10px 0 0;
+  }
+  .env-flap::after{ content:""; position:absolute; top:0; left:-115px; width:230px; height:78px; background:linear-gradient(160deg, rgba(255,255,255,0.06), transparent 60%); }
+  .wax-seal{
+    position:absolute; top:52px; left:50%; transform:translateX(-50%); width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #b30000, #6b0000 70%);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 3px 4px rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center; font-size:20px; color:#f6d9d9; z-index:2;
+  }
+  .env-caption{ text-align:center; margin-top:26px; font-size:15px; color:#6b3a3a; line-height:1.55; max-width:340px; }
+  .env-sprig{ position:absolute; width:44px; height:44px; opacity:0.9; pointer-events:none; }
+  .env-sprig.left{ top:-14px; left:-20px; transform:rotate(-25deg); }
+  .env-sprig.right{ top:-14px; right:-20px; transform:rotate(25deg) scaleX(-1); }
+
+  /* Step 6 opened invite */
+  .flip-scene{ perspective:1400px; }
+  .invite{
+    border-radius:16px; padding:32px 28px 26px; border:1px solid #e8d9be; position:relative;
+    animation: flipIn .7s cubic-bezier(.2,.7,.3,1); box-shadow: 0 20px 40px -18px rgba(139,0,0,0.35);
+    background-color:#fbf1e2;
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(139,0,0,0.05), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%238B0000' stroke-opacity='0.09' stroke-width='1.3'%3E%3Cpath d='M70 10 C90 30,90 50,70 70 C50 50,50 30,70 10 Z'/%3E%3Cpath d='M70 70 C90 90,90 110,70 130 C50 110,50 90,70 70 Z'/%3E%3Cpath d='M10 70 C30 50,50 50,70 70 C50 90,30 90,10 70 Z'/%3E%3Cpath d='M70 70 C90 50,110 50,130 70 C110 90,90 90,70 70 Z'/%3E%3Ccircle cx='70' cy='70' r='5' fill='%238B0000' fill-opacity='0.07' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='3' fill='%238B0000' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='140' cy='0' r='3' fill='%238B0000' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='0' cy='140' r='3' fill='%238B0000' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='140' cy='140' r='3' fill='%238B0000' fill-opacity='0.05' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 140px 140px;
+  }
+  @keyframes flipIn{ from{ transform: rotateX(-90deg); opacity:0; } to{ transform: rotateX(0deg); opacity:1; } }
+  .quote-block{ font-family:'Playfair Display', Georgia, serif; font-style:italic; font-size:17.5px; line-height:1.6; color:var(--burgundy); text-align:center; padding:0 6px 20px; }
+  .divider{ height:1px; background:linear-gradient(90deg, transparent, #d8b9b9, transparent); margin:0 auto 20px; width:80%; }
+  .finalized-label{ text-align:center; font-size:12.5px; text-transform:uppercase; letter-spacing:.12em; color:#a5807f; margin-bottom:14px; }
+  .details{ background:var(--lavender); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .detail-row{ display:flex; gap:10px; font-size:14.5px; color:#3a2a4a; align-items:flex-start; }
+  .detail-row .label{ font-weight:600; color:var(--burgundy-deep); min-width:78px; font-size:14.5px; }
+  .closing-line{ text-align:center; font-size:15px; color:#6b3a3a; margin-top:4px; }
+
+  /* Flatpickr theming */
+  .flatpickr-calendar{
+    background:var(--cream) !important; border-radius:16px !important;
+    box-shadow:0 20px 45px -14px rgba(139,0,0,0.5) !important; border:1px solid rgba(139,0,0,0.15) !important;
+    font-family:'Jost', sans-serif !important;
+  }
+  .flatpickr-calendar.arrowTop::before, .flatpickr-calendar.arrowTop::after{ border-bottom-color:var(--burgundy) !important; }
+  .flatpickr-months{ background:var(--burgundy); border-radius:16px 16px 0 0; padding:8px 0; }
+  .flatpickr-months .flatpickr-month{ color:#fff; fill:#fff; }
+  .flatpickr-current-month{ font-family:'Playfair Display', Georgia, serif !important; font-size:16px !important; color:#fff !important; }
+  .flatpickr-current-month input.cur-year{ color:#fff !important; font-family:'Jost', sans-serif !important; }
+  .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month{ fill:#fff !important; color:#fff !important; }
+  .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg{ fill:var(--lavender) !important; }
+  span.flatpickr-weekday{ background:var(--cream); color:var(--burgundy) !important; font-weight:600; font-size:11px; text-transform:uppercase; }
+  .flatpickr-day{ color:var(--ink); border-radius:8px !important; }
+  .flatpickr-day.today{ border-color:var(--burgundy) !important; }
+  .flatpickr-day:hover{ background:var(--lavender) !important; border-color:var(--lavender) !important; }
+  .flatpickr-day.selected, .flatpickr-day.selected:hover{
+    background:var(--burgundy) !important; border-color:var(--burgundy) !important; color:#fff !important;
+  }
+  .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover{ color:#d8c4c4 !important; }
+  .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay{ color:#d8bcbc !important; }
+  .flatpickr-weekdays{ background:var(--cream); }
+  .flatpickr-time{ border-top:1px solid rgba(139,0,0,0.15) !important; }
+  .flatpickr-time input{ color:var(--burgundy-deep) !important; font-weight:600; }
+  .flatpickr-time .numInputWrapper span.arrowUp:after{ border-bottom-color:var(--burgundy) !important; }
+  .flatpickr-time .numInputWrapper span.arrowDown:after{ border-top-color:var(--burgundy) !important; }
+  .flatpickr-am-pm{ color:var(--burgundy) !important; font-weight:600; }
+  .flatpickr-time .flatpickr-time-separator{ color:var(--burgundy-deep) !important; }
+
+  @media (max-width: 480px){
+    .card{ padding:34px 22px 28px; }
+    h2.heading{ font-size:24px; }
+    .food-grid{ grid-template-columns:repeat(2, 1fr); gap:9px; }
+    .envelope{ width:190px; height:126px; }
+    .env-flap{ border-left-width:95px; border-right-width:95px; border-top-width:64px; }
+    .env-flap::after{ width:190px; height:64px; left:-95px; }
+    .sprig{ width:46px; height:46px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="progress" id="progress">
+    <span class="heart" data-step="1">♥</span>
+    <span class="heart" data-step="2">♥</span>
+    <span class="heart" data-step="3">♥</span>
+    <span class="heart" data-step="4">♥</span>
+    <span class="heart" data-step="5">♥</span>
+    <span class="heart" data-step="6">♥</span>
+  </div>
+
+  <div class="viewport" id="viewport">
+
+    <!-- STEP 1 -->
+    <div class="card active" id="step1">
+      <svg class="sprig tl" viewBox="0 0 70 70">
+        <path d="M8 62 C14 46 12 32 20 20 C24 14 30 10 36 8" stroke="#8fae6e" stroke-width="1.6" fill="none"/>
+        <path d="M12 50 C 6 46, 2 40, 4 34" stroke="#8fae6e" stroke-width="1.3" fill="none"/>
+        <path d="M18 34 C 12 30, 8 24, 10 18" stroke="#8fae6e" stroke-width="1.3" fill="none"/>
+        <g fill="#E6E6FA" stroke="#c6b8ea" stroke-width="0.6">
+          <ellipse cx="36" cy="8" rx="4.2" ry="8.4" transform="rotate(-15 36 8)"/>
+          <ellipse cx="30" cy="14" rx="3.6" ry="7.4" transform="rotate(-32 30 14)"/>
+          <ellipse cx="25" cy="21" rx="3.4" ry="7" transform="rotate(-48 25 21)"/>
+          <ellipse cx="20" cy="29" rx="3.2" ry="6.6" transform="rotate(-60 20 29)"/>
+          <ellipse cx="16" cy="38" rx="3" ry="6.2" transform="rotate(-70 16 38)"/>
+          <ellipse cx="10" cy="18" rx="2.8" ry="5.6" transform="rotate(-95 10 18)"/>
+          <ellipse cx="4" cy="34" rx="2.6" ry="5.2" transform="rotate(-100 4 34)"/>
+        </g>
+        <g fill="#fff" stroke="#f0e6f7" stroke-width="0.5">
+          <circle cx="46" cy="46" r="9"/>
+          <circle cx="38" cy="42" r="6.4"/>
+          <circle cx="52" cy="38" r="5.6"/>
+        </g>
+        <g fill="none" stroke="#eadcf2" stroke-width="0.7">
+          <path d="M46 40 C 50 42, 51 46, 46 50 C 41 46, 42 42, 46 40 Z"/>
+          <path d="M40 38 C 43 39, 44 42, 40 45 C 36 42, 37 39, 40 38 Z"/>
+        </g>
+      </svg>
+      <svg class="sprig br" viewBox="0 0 70 70">
+        <path d="M8 62 C14 46 12 32 20 20 C24 14 30 10 36 8" stroke="#8fae6e" stroke-width="1.6" fill="none"/>
+        <path d="M12 50 C 6 46, 2 40, 4 34" stroke="#8fae6e" stroke-width="1.3" fill="none"/>
+        <path d="M18 34 C 12 30, 8 24, 10 18" stroke="#8fae6e" stroke-width="1.3" fill="none"/>
+        <g fill="#E6E6FA" stroke="#c6b8ea" stroke-width="0.6">
+          <ellipse cx="36" cy="8" rx="4.2" ry="8.4" transform="rotate(-15 36 8)"/>
+          <ellipse cx="30" cy="14" rx="3.6" ry="7.4" transform="rotate(-32 30 14)"/>
+          <ellipse cx="25" cy="21" rx="3.4" ry="7" transform="rotate(-48 25 21)"/>
+          <ellipse cx="20" cy="29" rx="3.2" ry="6.6" transform="rotate(-60 20 29)"/>
+          <ellipse cx="16" cy="38" rx="3" ry="6.2" transform="rotate(-70 16 38)"/>
+          <ellipse cx="10" cy="18" rx="2.8" ry="5.6" transform="rotate(-95 10 18)"/>
+          <ellipse cx="4" cy="34" rx="2.6" ry="5.2" transform="rotate(-100 4 34)"/>
+        </g>
+        <g fill="#fff" stroke="#f0e6f7" stroke-width="0.5">
+          <circle cx="46" cy="46" r="9"/>
+          <circle cx="38" cy="42" r="6.4"/>
+          <circle cx="52" cy="38" r="5.6"/>
+        </g>
+      </svg>
+
+      <div class="eyebrow">A question, for you only</div>
+      <h2 class="heading">Will you go on a date with me, Aishee? 💌</h2>
+      <div class="btn-row" id="step1BtnRow">
+        <button class="btn-primary" id="yesBtn">Yes ✨</button>
+        <button class="btn-ghost" id="noBtn">No</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card hidden-panel" id="step2">
+      <div class="emoji-hero">🎉</div>
+      <h2 class="heading">no way. NO WAY. 🤯</h2>
+      <p class="subtext">I had a whole speech prepared for if you said no.</p>
+      <button class="btn-next" id="toStep3Btn">what's next ➔</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card hidden-panel" id="step3">
+      <div class="emoji-hero">🗓️ 🐾</div>
+      <h2 class="heading">So... when are you free? 🗓️</h2>
+      <div class="field-group">
+        <div>
+          <label for="dateInput">Pick a date</label>
+          <input type="text" class="fp-input" id="dateInput" placeholder="Choose a date" readonly>
+        </div>
+        <div>
+          <label for="timeInput">Pick a time</label>
+          <input type="text" class="fp-input" id="timeInput" placeholder="Choose a time" readonly>
+        </div>
+      </div>
+      <div class="oops-card" id="oopsCard">
+        <h3>Oops! Adulting calls... 🥺</h3>
+        <p>Aww, looks like you picked a weekday! I'm only free on weekends for our special dates. Weekend dates give me more time to focus on missing you and planning everything! Can you pick a Saturday or Sunday instead? 🥺</p>
+      </div>
+      <button class="btn-next" id="checkDateBtn">okay next ➔</button>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="card hidden-panel" id="step4">
+      <h2 class="heading">What are we feeling? ✨</h2>
+      <p class="hint">Tap all that sound good</p>
+      <div class="food-grid" id="foodGrid">
+        <div class="food-item" data-food="Pizza 🍕"><span class="fe">🍕</span><span class="fn">Pizza</span></div>
+        <div class="food-item" data-food="Burger 🍔"><span class="fe">🍔</span><span class="fn">Burger</span></div>
+        <div class="food-item" data-food="Chowmien 🍝"><span class="fe">🍝</span><span class="fn">Chowmien</span></div>
+        <div class="food-item" data-food="Biriyani 🍲"><span class="fe">🍲</span><span class="fn">Biriyani</span></div>
+        <div class="food-item" data-food="Ice Creams 🍦"><span class="fe">🍦</span><span class="fn">Ice Creams</span></div>
+        <div class="food-item" data-food="Noodles 🍜"><span class="fe">🍜</span><span class="fn">Noodles</span></div>
+        <div class="food-item" data-food="Momos 🥟"><span class="fe">🥟</span><span class="fn">Momos</span></div>
+        <div class="food-item" data-food="Fried Chicken 🍗"><span class="fe">🍗</span><span class="fn">Fried Chicken</span></div>
+      </div>
+      <button class="btn-next" id="confirmFoodBtn">this one! ➔</button>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="card hidden-panel" id="step5">
+      <h2 class="heading" style="margin-bottom:22px;">Date details locked in! 🔒</h2>
+      <div class="envelope-wrap" id="envelopeWrap">
+        <div class="envelope">
+          <svg class="env-sprig left" viewBox="0 0 60 60"><g fill="#E6E6FA" stroke="#c6b8ea" stroke-width="0.6"><ellipse cx="30" cy="6" rx="4" ry="8" transform="rotate(-15 30 6)"/><ellipse cx="24" cy="12" rx="3.4" ry="7" transform="rotate(-32 24 12)"/><ellipse cx="19" cy="19" rx="3.2" ry="6.6" transform="rotate(-48 19 19)"/></g><path d="M34 4 C 26 12, 20 22, 14 34" stroke="#8fae6e" stroke-width="1.4" fill="none"/></svg>
+          <svg class="env-sprig right" viewBox="0 0 60 60"><g fill="#fff" stroke="#f0e6f7" stroke-width="0.5"><circle cx="30" cy="18" r="8"/><circle cx="22" cy="14" r="5.6"/><circle cx="36" cy="12" r="5"/></g></svg>
+          <div class="env-body"></div>
+          <div class="env-flap"></div>
+          <div class="wax-seal">A♥</div>
+        </div>
+        <p class="env-caption">Click to open my special invitation card. 💌</p>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="card hidden-panel" id="step6">
+      <div class="flip-scene">
+        <div class="invite">
+          <svg class="sprig tl" viewBox="0 0 70 70">
+            <g fill="#fff" stroke="#f0e6f7" stroke-width="0.5">
+              <circle cx="26" cy="26" r="8.5"/><circle cx="18" cy="21" r="6"/><circle cx="32" cy="18" r="5.4"/>
+            </g>
+            <path d="M26 34 C 22 46, 20 54, 14 62" stroke="#8fae6e" stroke-width="1.5" fill="none"/>
+            <path d="M20 48 C 14 46, 10 42, 10 36" stroke="#8fae6e" stroke-width="1.2" fill="none"/>
+          </svg>
+          <svg class="sprig br" viewBox="0 0 70 70">
+            <path d="M8 62 C14 46 12 32 20 20 C24 14 30 10 36 8" stroke="#8fae6e" stroke-width="1.6" fill="none"/>
+            <g fill="#E6E6FA" stroke="#c6b8ea" stroke-width="0.6">
+              <ellipse cx="36" cy="8" rx="4.2" ry="8.4" transform="rotate(-15 36 8)"/>
+              <ellipse cx="30" cy="14" rx="3.6" ry="7.4" transform="rotate(-32 30 14)"/>
+              <ellipse cx="25" cy="21" rx="3.4" ry="7" transform="rotate(-48 25 21)"/>
+              <ellipse cx="20" cy="29" rx="3.2" ry="6.6" transform="rotate(-60 20 29)"/>
+            </g>
+          </svg>
+
+          <div class="quote-block">"If I had to choose between breathing or loving you, I would say 'I love you' with my last breath."</div>
+          <div class="divider"></div>
+          <div class="finalized-label">Our date, finalized</div>
+          <div class="details">
+            <div class="detail-row"><span class="label">🗓️ When</span><span id="whenOut">—</span></div>
+            <div class="detail-row"><span class="label">🍽️ Food</span><span id="foodOut">—</span></div>
+          </div>
+          <p class="closing-line">Can't wait to see you soon, Aishee! ❤️</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ---------- audio: tiny synthesized sound effects, no external files ---------- */
+  let audioCtx;
+  function ensureAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+  }
+  function playPop(){
+    try{
+      ensureAudio();
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(560, t);
+      osc.frequency.exponentialRampToValueAtTime(300, t + 0.09);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.16, t + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    }catch(e){ /* audio not available, fail silently */ }
+  }
+  function playChime(){
+    try{
+      ensureAudio();
+      const t = audioCtx.currentTime;
+      const notes = [880, 1108.73, 1318.51, 1760];
+      notes.forEach((freq, i) => {
+        const start = t + i * 0.1;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.13, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 1.0);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + 1.05);
+      });
+    }catch(e){ /* audio not available, fail silently */ }
+  }
+
+  /* ---------- state ---------- */
+  let selectedFoods = [];
+  let finalDate = null;
+  let finalTime = null;
+  let currentStep = 1;
+
+  function updateProgress(step){
+    document.querySelectorAll('.progress .heart').forEach(h=>{
+      const s = parseInt(h.dataset.step);
+      h.classList.remove('done','now');
+      if(s < step) h.classList.add('done');
+      if(s === step) h.classList.add('now');
+    });
+  }
+  updateProgress(1);
+
+  const viewport = document.getElementById('viewport');
+
+  /* ---------- slide transition engine ---------- */
+  function goTo(step, opts){
+    opts = opts || {};
+    const current = document.querySelector('.card.active');
+    const next = document.getElementById('step' + step);
+    if(!current || current === next) return;
+
+    // Step 6 uses its own dramatic 3D flip instead of the slide.
+    if(step === 6){
+      current.classList.remove('active');
+      current.classList.add('hidden-panel');
+      next.classList.remove('hidden-panel');
+      next.classList.add('active');
+      currentStep = step;
+      updateProgress(step);
+      populateInvite();
+      // restart the flip keyframe each time this is shown
+      const inviteEl = next.querySelector('.invite');
+      inviteEl.style.animation = 'none';
+      void inviteEl.offsetWidth;
+      inviteEl.style.animation = '';
+      return;
+    }
+
+    const startHeight = current.getBoundingClientRect().height;
+    viewport.style.height = startHeight + 'px';
+
+    next.classList.remove('hidden-panel');
+    next.style.position = 'absolute';
+    next.style.top = '0';
+    next.style.left = '0';
+    next.style.transform = 'translateX(36px)';
+    next.style.opacity = '0';
+    next.style.transition = 'none';
+
+    current.style.position = 'absolute';
+    current.style.top = '0';
+    current.style.left = '0';
+    current.style.transition = 'none';
+
+    void next.offsetWidth;
+
+    const nextHeight = next.scrollHeight;
+
+    requestAnimationFrame(()=>{
+      current.style.transition = 'transform .45s cubic-bezier(.4,0,.2,1), opacity .45s ease';
+      current.style.transform = 'translateX(-36px)';
+      current.style.opacity = '0';
+
+      next.style.transition = 'transform .45s cubic-bezier(.4,0,.2,1), opacity .45s ease';
+      next.style.transform = 'translateX(0)';
+      next.style.opacity = '1';
+
+      viewport.style.height = nextHeight + 'px';
+    });
+
+    setTimeout(()=>{
+      current.classList.remove('active');
+      current.classList.add('hidden-panel');
+      current.style.position = '';
+      current.style.top = '';
+      current.style.left = '';
+      current.style.transform = '';
+      current.style.opacity = '';
+      current.style.transition = '';
+
+      next.classList.add('active');
+      next.style.position = '';
+      next.style.top = '';
+      next.style.left = '';
+      next.style.transform = '';
+      next.style.opacity = '';
+      next.style.transition = '';
+
+      viewport.style.height = '';
+      currentStep = step;
+    }, 470);
+
+    updateProgress(step);
+  }
+
+  /* ---------- Step 1: dodging "No" button, mobile-safe ---------- */
+  const noBtn = document.getElementById('noBtn');
+  const step1 = document.getElementById('step1');
+  const yesBtn = document.getElementById('yesBtn');
+
+  function dodge(){
+    const btnW = noBtn.offsetWidth || 90;
+    const btnH = noBtn.offsetHeight || 48;
+    const padding = 16;
+
+    // Use the card's own padding-box size -- this is exactly the coordinate
+    // space that left/top are measured against once the button is absolute.
+    const cardW = step1.clientWidth;
+    const cardH = step1.clientHeight;
+
+    const maxX = Math.max(padding, cardW - btnW - padding);
+    const maxY = Math.max(padding, cardH - btnH - padding);
+
+    const x = padding + Math.random() * Math.max(0, maxX - padding);
+    const y = padding + Math.random() * Math.max(0, maxY - padding);
+
+    noBtn.style.position = 'absolute';
+    noBtn.style.right = 'auto';
+    noBtn.style.bottom = 'auto';
+    noBtn.style.margin = '0';
+    noBtn.style.left = Math.min(Math.max(x, padding), maxX) + 'px';
+    noBtn.style.top = Math.min(Math.max(y, padding), maxY) + 'px';
+
+    // Safety net: after layout settles, re-check against the real rendered
+    // boxes and pull the button back in if it ever pokes outside the card.
+    requestAnimationFrame(()=>{
+      const cardRect = step1.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      let left = parseFloat(noBtn.style.left);
+      let top = parseFloat(noBtn.style.top);
+
+      if(btnRect.right > cardRect.right - padding){
+        left -= (btnRect.right - (cardRect.right - padding));
+      }
+      if(btnRect.left < cardRect.left + padding){
+        left += (cardRect.left + padding - btnRect.left);
+      }
+      if(btnRect.bottom > cardRect.bottom - padding){
+        top -= (btnRect.bottom - (cardRect.bottom - padding));
+      }
+      if(btnRect.top < cardRect.top + padding){
+        top += (cardRect.top + padding - btnRect.top);
+      }
+
+      noBtn.style.left = Math.max(0, left) + 'px';
+      noBtn.style.top = Math.max(0, top) + 'px';
+    });
+  }
+
+  // Desktop: dodge on hover.
+  noBtn.addEventListener('mouseenter', dodge);
+
+  // Mobile: dodge instantly on touch, before a click can register.
+  noBtn.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    dodge();
+  }, { passive:false });
+
+  // Belt-and-braces: if a click ever does land, still just dodge rather than proceed.
+  noBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    dodge();
+  });
+
+  yesBtn.addEventListener('click', function(){
+    playPop();
+    goTo(2);
+  });
+
+  document.getElementById('toStep3Btn').addEventListener('click', function(){
+    playPop();
+    goTo(3);
+  });
+
+  /* ---------- Step 3: Flatpickr date & time, themed ---------- */
+  const dateFP = flatpickr('#dateInput', {
+    dateFormat: 'Y-m-d',
+    disableMobile: true,
+    minDate: 'today',
+    animate: true
+  });
+  const timeFP = flatpickr('#timeInput', {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: 'H:i',
+    time_24hr: false,
+    disableMobile: true,
+    minuteIncrement: 15
+  });
+
+  document.getElementById('checkDateBtn').addEventListener('click', function(){
+    playPop();
+    checkDate();
+  });
+
+  function checkDate(){
+    const dateVal = document.getElementById('dateInput').value;
+    const timeVal = document.getElementById('timeInput')._flatpickr.input.value;
+    const oops = document.getElementById('oopsCard');
+
+    if(!dateVal || !timeVal){
+      oops.querySelector('h3').textContent = 'Almost there... 🥺';
+      oops.querySelector('p').textContent = 'Please pick both a date and a time so I know exactly when to show up!';
+      oops.classList.remove('show');
+      void oops.offsetWidth;
+      oops.classList.add('show');
+      return;
+    }
+
+    const [y, m, d] = dateVal.split('-').map(Number);
+    const dayOfWeek = new Date(y, m - 1, d).getDay(); // Sun=0 ... Sat=6
+
+    if(dayOfWeek >= 1 && dayOfWeek <= 5){
+      oops.querySelector('h3').textContent = 'Oops! Adulting calls... 🥺';
+      oops.querySelector('p').textContent = "Aww, looks like you picked a weekday! I'm only free on weekends for our special dates. Weekend dates give me more time to focus on missing you and planning everything! Can you pick a Saturday or Sunday instead? 🥺";
+      oops.classList.remove('show');
+      void oops.offsetWidth;
+      oops.classList.add('show');
+      return;
+    }
+
+    oops.classList.remove('show');
+    finalDate = new Date(y, m - 1, d);
+    finalTime = timeFP.selectedDates[0]
+      ? (timeFP.selectedDates[0].getHours() + ':' + String(timeFP.selectedDates[0].getMinutes()).padStart(2,'0'))
+      : timeVal;
+    goTo(4);
+  }
+
+  /* ---------- Step 4: food grid ---------- */
+  const foodItems = document.querySelectorAll('.food-item');
+  foodItems.forEach(item=>{
+    item.addEventListener('click', ()=>{
+      item.classList.toggle('selected');
+      playPop();
+    });
+  });
+
+  document.getElementById('confirmFoodBtn').addEventListener('click', function(){
+    playPop();
+    confirmFood();
+  });
+
+  function confirmFood(){
+    selectedFoods = Array.from(document.querySelectorAll('.food-item.selected')).map(el => el.dataset.food);
+    if(selectedFoods.length === 0){
+      selectedFoods = ['Surprise me! 🎲'];
+    }
+    goTo(5);
+  }
+
+  /* ---------- Step 5: sealed envelope ---------- */
+  document.getElementById('envelopeWrap').addEventListener('click', function(){
+    playChime();
+    goTo(6);
+  });
+
+  /* ---------- Step 6: populate final invite ---------- */
+  function populateInvite(){
+    const options = { weekday:'long', month:'long', day:'numeric' };
+    const dateStr = finalDate ? finalDate.toLocaleDateString('en-US', options) : '—';
+    let timeStr = '—';
+    if(finalTime){
+      const [hh, mm] = finalTime.split(':').map(Number);
+      const period = hh >= 12 ? 'PM' : 'AM';
+      const hour12 = ((hh % 12) === 0) ? 12 : (hh % 12);
+      timeStr = hour12 + ':' + String(mm).padStart(2,'0') + ' ' + period;
+    }
+    document.getElementById('whenOut').textContent = dateStr + ', ' + timeStr;
+    document.getElementById('foodOut').textContent = selectedFoods.join(', ');
+  }
+</script>
+
+</body>
+</html>
