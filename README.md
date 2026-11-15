@@ -12,7 +12,7 @@ A beautifully designed, interactive, mobile-friendly website template to ask you
 ## 🚀 How to Use & Customize
 1. **Fork the Repository:** Click the "Fork" button at the top right of this page to copy it to your own GitHub account.
 2. **Edit the HTML:** Open `index.html` and customize the text to fit your relationship:
-   * `Ctrl+F` or `Cmd+F` to find the name **Aishee** and replace it with your partner's name.
+   * `Ctrl+F` or `Cmd+F` to find the name **Srija** and replace it with your partner's name.
    * Modify the food array items to match their favorite foods.
    * Change the quote inside the final opened card (Step 6).
 3. **Deploy for Free:** 
